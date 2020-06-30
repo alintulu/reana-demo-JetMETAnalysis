@@ -1,0 +1,34 @@
+stages:
+  - name: apply_l1
+    dependencies: [init]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        l1_corr: {stages: init, output: l1_corr, unwrap: true}
+        input_file: {stages: init, output: input_file, unwrap: true}
+        output_merged: '{workdir}/merged.root'
+        algo: {stages: init, output: algo}
+        cone_size: {stages: init, output: cone_size}
+        jet_type: {stages: init, output: jet_type}
+        era: 'ParallelMC'
+        release: {stages: init, output: release, unwrap: true}
+        scram_arch: {stages: init, output: scram_arch, unwrap: true}
+        output_path: '{workdir}'
+        output_file: '{workdir}/JRA_jecl1.root'
+      step: {$ref: 'steps.yaml#/apply_l1'}
+
+  - name: histogram
+    dependencies: [apply_l1]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        input_file: {stages: apply_l1, output: applied_l1}
+        algo: {stages: init, output: algo}
+        cone_size: {stages: init, output: cone_size}
+        jet_type: {stages: init, output: jet_type}
+        release: {stages: init, output: release, unwrap: true}
+        scram_arch: {stages: init, output: scram_arch, unwrap: true}
+        PU_dist_mc: {stages: init, output: PU_dist_mc, unwrap: true}
+        output_path: '{workdir}'
+        output_file: '{workdir}/jra_jecl1.root'
+      step: {$ref: 'steps.yaml#/histogram'}

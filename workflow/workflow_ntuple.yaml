@@ -1,0 +1,36 @@
+stages:
+  - name: list_lumi_PU
+    dependencies: [init]
+    scheduler:
+      scheduler_type: multistep-stage
+      parameters:
+        input_file: {stages: init, output: input_file_PU, unwrap: true}
+        algo: {stages: init, output: algo}
+        cone_size: {stages: init, output: cone_size}
+        jet_type: {stages: init, output: jet_type}
+        release: {stages: init, output: release, unwrap: true}
+        scram_arch: {stages: init, output: scram_arch, unwrap: true}
+        output_file: '{workdir}/lumisections.txt'
+      batchsize: 50
+      step: {$ref: 'steps.yaml#/list_lumi'}
+      scatter:
+         method: zip
+         parameters: [input_file]
+
+  - name: list_lumi_noPU
+    dependencies: [init]
+    scheduler:
+      scheduler_type: multistep-stage
+      parameters:
+        input_file: {stages: init, output: input_file_noPU, unwrap: true}
+        algo: {stages: init, output: algo}
+        cone_size: {stages: init, output: cone_size}
+        jet_type: {stages: init, output: jet_type}
+        release: {stages: init, output: release, unwrap: true}
+        scram_arch: {stages: init, output: scram_arch, unwrap: true}
+        output_file: '{workdir}/lumisections.txt'
+      batchsize: 30
+      step: {$ref: 'steps.yaml#/list_lumi'}
+      scatter:
+         method: zip
+         parameters: [input_file]
