@@ -6,7 +6,7 @@
 About
 =====
 
-This `REANA <http://reanahub.io/>`_ reproducible analysis example computes Monte Carlo jet energy corrections. It involves creating and analysing L1FastJet, L2Relative and L3Absolute MC truth jet energy corrections. The code is used by the CMS Jet Energy Resolution and Corrections (JERC) subgroup. The main goal of the analysis is to use MC truth information and jet matching techniques to create proper jet energy calibrations.
+This `REANA <http://reanahub.io/>`_ reproducible analysis example computes Monte Carlo (MC) jet energy corrections. It involves creating and analysing L1FastJet, L2Relative and L3Absolute MC truth jet energy corrections. The code is used by the CMS Jet Energy Resolution and Corrections (JERC) subgroup. The main goal of the analysis is to use MC truth information and jet matching techniques to create proper jet energy calibrations.
 
 Analysis structure
 ==================
@@ -21,7 +21,7 @@ cloud and run the analysis to obtain (5) output results.
 1. Input data
 -------------
 
-The analysis takes QCD dijet events with and without added pileup as input. The file format is currently AODSIM but soon migrate to MINIAOD and likely soon after NANOAOD.
+The analysis takes QCD dijet events with and without added pileup as input. The file format is currently AODSIM but will soon migrate to MINIAOD and likely thereafter to NANOAOD.
 
 
 2. Analysis code
@@ -67,7 +67,7 @@ The script takes several parameters as input, they can all be found at
 
 `jet_synchfit_x <code/>`_ - Compute L1FastJet
 
-This script is responsible for computing the L1FastJet jet energy corrections. The goal is to determine how offset over area changes with jet pT and rho. A function is fitted to a TGraph2D and the fit becomes a single line in the output text file.
+This script is responsible for computing the L1FastJet jet energy corrections. The goal is to determine how offset over area changes with jet pT and rho. The computed offset can then be removed. A function is fitted to a TGraph2D and the fit becomes a single line in the output text file.
 
 The script takes several parameters as input, they can all be found at
 
