@@ -29,7 +29,7 @@ The analysis takes QCD dijet events with and without added pileup as input. The 
 
 This anaylsis is built up my multiple scripts written in C++. The CMSSW framework is needed to compile the code and provide information necessary for jet response and resolution measurements.
 
-Step 1: Prepare the input for which the analysis will run on. 
+Step 1: Prepare the input for which the analysis runs on. 
      To speed up the process and save on memory, the first part of the workflow prepares a list of pileup files and no pileup files containing the same lumisections. This is achieved by creating a list of event/run/lumi for all Ntuple files only to match the files that has the same information.
 
 `ListRunLumi.cpp <code/utils/ListRunLumi.cpp>`_ - List lumisections
