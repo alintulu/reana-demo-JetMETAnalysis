@@ -1,0 +1,3 @@
+[submodule "JetMETAnalysis"]
+	path = JetMETAnalysis
+	url = git@github.com:alintulu/JetMETAnalysis.git
