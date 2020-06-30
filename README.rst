@@ -126,75 +126,76 @@ analysis framework that was packaged for Docker in
 This worfklow has mutliple steps, some steps scattered to run in parallel, later to be merged together. We shall use the `Yadage <https://github.com/yadage>`_ workflow engine to
 express the computational steps in a declarative manner. The `workflow.yaml <workflow/workflow.yaml>`_ workflow defines the full pipeline.
 
-```
-+-------------------+
-| Ntuple production |   Running parallel
-+-------------------+
-   |      |      |    
-  +----+  |  +------+
-  | PU |  |  | NoPU |
-  +----+  |  +------+   
-   |      |      |
-   v      v      v
-+-------------------+
-| List lumisections |   Running parallel
-+-------------------+
-   |      |      |    
-  +----+  |  +------+
-  | PU |  |  | NoPU |
-  +----+  |  +------+   
-   |      |      |
-   v      v      v
-+--------------------+
-| Match lumisections |   Single process
-+--------------------+
-         |
-         |
-         v
-+----------------+
-|   Match jets   |   Running parallel
-+----------------+
-  |      |     
-  |      |  
-  v      v   <-- Merge
-+------------+ 
-| Compute L1 |   Single process
-+------------+
-         |
-         |
-         v
-+----------+
-| Apply L1 |   Running parallel
-+----------+
-  |      |     
-  |      | 
-  v      v  
-+-------------------+
-| Produce histograms|   Running parallel
-+-------------------+
-  |      |      |    
-  |      |      |
-  v      v      v               
- +--------------+   
- | Compute L2L3 |   Single process
- +--------------+
-        |
-        |                             
-        v                                                           
-+-----------------------+
-| Compute Closure files |   Running parallel
-+-----------------------+
-  |      |      |    
-  |      |      |
-  v      v      v   <-- Merge
-+---------------------+
-|  Draw Closure plots |   Single process
-+---------------------+
-        |
-        |
-        v
-      DONE
-```
+
+.. code-block:: console
+
+   +-------------------+
+   | Ntuple production |   Running parallel
+   +-------------------+
+      |      |      |    
+     +----+  |  +------+
+     | PU |  |  | NoPU |
+     +----+  |  +------+   
+      |      |      |
+      v      v      v
+   +-------------------+
+   | List lumisections |   Running parallel
+   +-------------------+
+      |      |      |    
+     +----+  |  +------+
+     | PU |  |  | NoPU |
+     +----+  |  +------+   
+      |      |      |
+      v      v      v
+   +--------------------+
+   | Match lumisections |   Single process
+   +--------------------+
+            |
+            |
+            v
+   +----------------+
+   |   Match jets   |   Running parallel
+   +----------------+
+     |      |     
+     |      |  
+     v      v   <-- Merge
+   +------------+ 
+   | Compute L1 |   Single process
+   +------------+
+            |
+            |
+            v
+   +----------+
+   | Apply L1 |   Running parallel
+   +----------+
+     |      |     
+     |      | 
+     v      v  
+   +-------------------+
+   | Produce histograms|   Running parallel
+   +-------------------+
+     |      |      |    
+     |      |      |
+     v      v      v               
+    +--------------+   
+    | Compute L2L3 |   Single process
+    +--------------+
+           |
+           |                             
+           v                                                           
+   +-----------------------+
+   | Compute Closure files |   Running parallel
+   +-----------------------+
+     |      |      |    
+     |      |      |
+     v      v      v   <-- Merge
+   +---------------------+
+   |  Draw Closure plots |   Single process
+   +---------------------+
+           |
+           |
+           v
+         DONE
 
 
 5. Output results
