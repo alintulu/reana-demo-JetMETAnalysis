@@ -1,0 +1,3 @@
+[submodule "code/JetMETAnalysis"]
+	path = code/JetMETAnalysis
+	url = git@github.com:alintulu/JetMETAnalysis.git
