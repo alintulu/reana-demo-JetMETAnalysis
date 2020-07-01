@@ -21,20 +21,20 @@ cloud and run the analysis to obtain (5) output results.
 1. Input data
 -------------
 
-The analysis takes QCD dijet events with and without added pileup as input. The file format is currently AODSIM but will soon migrate to MINIAOD and likely thereafter to NANOAOD.
+The analysis runs on simulated QCD dijet events with and without added pileup. The file format is currently AODSIM but will soon migrate to MINIAOD and likely thereafter to NANOAOD.
 
 
 2. Analysis code
 ----------------
 
-This anaylsis is built up my multiple scripts written in C++. The CMSSW framework is needed to compile the code and provide information necessary for jet response and resolution measurements.
+This anaylsis is built up my multiple scripts written in C++. The main analysis code can be found at `code/JetMETAnalysis <https://github.com/alintulu/JetMETAnalysis/tree/9b42bae09181849044c31a5854bf064e2287e714>`_ while shorter scripts used for configuration as well as formatting the data is located at `<code/utils>`_. The CMSSW framework is needed to compile the code and provide information necessary for jet response and resolution measurements.
 
-Step 1: Prepare the input for which the analysis runs on. 
-     To speed up the process and save on memory, the first part of the workflow prepares a list of pileup files and no pileup files containing the same lumisections. This is achieved by creating a list of event/run/lumi for all Ntuple files only to match the files that has the same information.
+Step 1: Prepare the input 
+     To speed up the process and save memory, the first part of the workflow prepares a list of pileup files and no pileup files containing the same lumisections. This is achieved by creating a list of event/run/lumi for all Ntuple files to then match the files that has the same information. The list enables scattering of jobs to run parallel.
 
 `ListRunLumi.cpp <code/utils/ListRunLumi.cpp>`_ - List lumisections
 
-This script takes one file as input and returns a table with three columns lumisection, run number and absolute path to file. The table is sorted with lumisections in increasing order. 
+This script takes one file as input and returns a table with three columns; lumisection, run number and absolute path to file. The table is sorted with lumisections in increasing order. 
 
 The script has the command line interface
 
@@ -42,7 +42,7 @@ The script has the command line interface
 
 `MatchFiles.cpp <code/utils/MatchFiles.cpp>`_ - Match lumisection to pileup and no pileup file
 
-The output from previous step is used to return a list of where each lumisections is matched to corresponding pileup and no pileup file. 
+The output from previous step is used to return a list where each lumisections is matched to corresponding pileup and no pileup files. 
 
 The script has the command line interface
 
@@ -50,18 +50,18 @@ The script has the command line interface
 
 `RunPrepareMatching.cpp <code/utils/RunPrepareMatching.cpp>`_ - Format the matched files
 
-This script takes the list of lumisections matched to files and returns a YAML file with one value containing `{batch_size}` number of paths to pileup files as well as every no pileup file that contains they same lumisections as the batch of pileup files. As a result we have successfully clustered the pileup files into batches while simultaneously storing a list of all no pileup files with the same lumisections.
+This script takes the list from previous step and returns a YAML file with one value containing `{batch_size}` number of paths to pileup files, as well as every no pileup file that contains they same lumisections as those files. As a result we have successfully clustered the pileup files into batches while simultaneously storing a list of all no pileup files with the same lumisections.
 
 The script has the command line interface
 
   :code:`./RunPrepareMatching MatchedFiles {batch_size} >> {output_file}`
   
-Step 2: Derive the MC truth corrections.
+Step 2: Derive the MC truth corrections
     This if where the actual analysis starts.
 
 `jet_synchtest_x <code/>`_ - Match jets
 
-This script matches events between two samples, and then matches the reconstructed jets between those two samples based on particle level. The primary reason for this is to calcualte the difference in pT between a jet that is in an environment where pileup was simulated and the same exact jet when there is no pileup. This tells us the offset or in other words the amount of pileup added to the jet.
+This script matches events between two samples, and then matches the reconstructed jets between those two samples based on particle level. The primary reason for this is to calcualte the difference in pT between a jet that is in an environment where pileup was simulated and the exact same jet when there is no pileup. This tells us the offset or in other words the amount of pileup added to the jet.
 
 The script takes several parameters as input, they can all be found at `JetAnalyzers/bin#jet_synchtest_x <https://github.com/alintulu/JetMETAnalysis/tree/9b42bae09181849044c31a5854bf064e2287e714/JetAnalyzers/bin#jet_synchtest_x>`_
 
@@ -73,7 +73,7 @@ The script takes several parameters as input, they can all be found at `JetAnaly
 
 `deriveL1.C <code/>`_ - Compute L1FastJet
 
-This script is due to experimenting with different L1 parameterization. It rederives the L1FastJet following the another L1 parameterization.
+This script exist due to experimenting with different L1 parameterizations. It rederives the L1FastJet following another L1 parameterization.
 
 The script has the command line interface
 
@@ -118,12 +118,12 @@ ROOT version our analysis is using. We shall achieve this by preparing a `Docker
 <https://www.docker.com/>`_ container image for our analysis steps.
 
 This analysis example runs within the `CMSSW <http://cms-sw.github.io/>`_
-analysis framework that was packaged for Docker in
+analysis framework that was packaged for Docker in `clelange/cmssw:10_6_12 <https://hub.docker.com/layers/clelange/cmssw/10_6_12/images/sha256-38378fdfdcc8f75a5c33792d67ca8f79ea90cccd0c0627bfb4e20ee7d37039ce?context=explore/>`_. The code found in the directory `<code/>`_ was added to the docker image with the `<Dockerfile>`_.
 
 4. Analysis workflow
 --------------------
 
-This worfklow has mutliple steps, some steps scattered to run in parallel, later to be merged together. We shall use the `Yadage <https://github.com/yadage>`_ workflow engine to
+This worfklow has mutliple steps. We use the `Yadage <https://github.com/yadage>`_ workflow engine to
 express the computational steps in a declarative manner. The `workflow.yaml <workflow/workflow.yaml>`_ workflow defines the full pipeline.
 
 
@@ -221,9 +221,6 @@ workflow specification, with its steps in the `workflow <workflow>`_ directory.
     workflow:
       type: yadage
       file: workflow/workflow.yaml
-    outputs:
-      files:
-       - plot_closure/
 
 We can now install the REANA command-line client, run the analysis and download the resulting plots:
 
