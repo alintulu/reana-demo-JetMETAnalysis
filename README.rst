@@ -120,6 +120,10 @@ ROOT version our analysis is using. We shall achieve this by preparing a `Docker
 This analysis example runs within the `CMSSW <http://cms-sw.github.io/>`_
 analysis framework that was packaged for Docker in `clelange/cmssw:10_6_12 <https://hub.docker.com/layers/clelange/cmssw/10_6_12/images/sha256-38378fdfdcc8f75a5c33792d67ca8f79ea90cccd0c0627bfb4e20ee7d37039ce?context=explore/>`_. The code found in the directory `<code/>`_ was added to the docker image with the `<Dockerfile>`_.
 
+Build the Docker image via the command line interface
+
+  `docker build -t alintulu/cmssw:10_6_12-compiled .`
+
 4. Analysis workflow
 --------------------
 
