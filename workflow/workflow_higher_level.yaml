@@ -10,7 +10,7 @@ stages:
         algo: {stages: init, output: algo}
         cone_size: {stages: init, output: cone_size}
         jet_type: {stages: init, output: jet_type}
-        era: 'ParallelMC'
+        era: {stages: init, output: era}
         release: {stages: init, output: release, unwrap: true}
         scram_arch: {stages: init, output: scram_arch, unwrap: true}
         output_path: '{workdir}'

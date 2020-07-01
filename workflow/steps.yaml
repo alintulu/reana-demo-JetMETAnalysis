@@ -23,6 +23,54 @@ initialise:
     image: alintulu/jec
     imagetag: box-slc6-v4
 
+merge_ntuple:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      echo "Setting up CMSSW_10_3_3"
+      source /opt/cms/cmsset_default.sh
+      scramv1 project CMSSW CMSSW_10_3_3
+      cd CMSSW_10_3_3/src
+      eval `scramv1 runtime -sh`
+      echo "CMSSW should now be available."
+
+      files="{input_file}"
+
+      for file in {input_file}; do
+        n=0
+        until [ "$n" -ge 5 ]; do
+          ls $file
+          root -q -b $file
+          if [ $? -eq 255 ]; then
+            break
+          fi
+          n=$(($n+1)) 
+          sleep 10
+        done
+
+        if [ "$n" == 5 ]; then
+          echo "!!!!!!! $file corrupted! Removing it from the list. !!!!!!!"
+          echo -n "$files ==> "
+          files=$(echo $files | sed s@"$file"@@)
+          echo $files
+        fi
+      done
+
+      hadd -k -f -n 5 {output_file} $files
+      if [ $? -ne 0 ]; then
+        echo "Returned zero even though non-zero exit status"
+        return 0
+      fi
+  environment:
+    environment_type: docker-encapsulated
+    image: alintulu/jec
+    imagetag: box-slc6-v4
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      merged: '{output_file}'
+
 create_PU_dist:
   process:
     process_type: interpolated-script-cmd
@@ -124,6 +172,20 @@ match_lumi:
     image: alintulu/jec
     imagetag: box-slc6-v4
 
+initialise2:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      cp $HOME/helper/Matchedfiles.yml {output_file}
+  publisher:
+    publisher_type: fromyaml-pub
+    yamlfile: 'Matchedfiles.yml'
+  environment:
+    environment_type: docker-encapsulated
+    image: alintulu/jec
+    imagetag: box-slc6-v4
+
 match_jets:
   process:
     process_type: interpolated-script-cmd
@@ -139,10 +201,10 @@ match_jets:
       cp -r $HOME/JetMETAnalysis .
       scram b
 
-      echo I will sleep for $(({sleep}*20)) minutes
+      echo I will sleep for $(({sleep}*0)) minutes
       echo Time when sleep started $(date +"%T")
 
-      sleep $(({sleep}*20))m
+      sleep $(({sleep}*0))m
 
       echo Time when sleep is over $(date +"%T")
       echo Starting to hadd..
@@ -182,6 +244,8 @@ match_jets:
         -nrefmax 3 \
         -doNotSave true
 
+      mv {output_path}/output_*.root {output_path}/Matchedjets.root
+
       rm {output_path}/NoPUFile.root
       rm {output_path}/PUFile.root
   environment:
@@ -205,7 +269,7 @@ compute_l1:
       cd CMSSW_10_3_3/src
       eval `scramv1 runtime -sh`
       echo "CMSSW should now be available."
-      cp $HOME/helper/deriveL1.C .
+      cp $REANA_WORKSPACE/deriveL1.C .
       cp -r $HOME/JetMETAnalysis .
       scram b
 
@@ -247,17 +311,13 @@ apply_l1:
       cd CMSSW_10_3_3/src
       eval `scramv1 runtime -sh`
       echo "CMSSW should now be available."
-      cp {l1_corr} .
+      cp {l1_corr} {era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
       cp -r $HOME/JetMETAnalysis .
       scram b
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
 
       hadd -k -f -n 5 {output_merged} {input_file}
-
-      for i in {input_file}; do
-         rm $i
-      done
 
       jet_apply_jec_x \
         -input {output_merged} \
@@ -357,7 +417,7 @@ compute_l2l3:
         -l2pffit splineAkima \
         -ptclip 20
 
-      cp {output_path}/*.txt {output_path}/{era}_L2Relative_{algo}{cone_size}{jet_type}.txt
+      cp {output_path}/*.txt {output_path}/L2Relative.txt
   environment:
     environment_type: docker-encapsulated
     image: alintulu/jec
@@ -379,8 +439,8 @@ closure:
       eval `scramv1 runtime -sh`
       echo "CMSSW should now be available."
       cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
-      cp {l1_corr} .
-      cp {l2l3_corr} .
+      cp {l1_corr} {era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
+      cp {l2l3_corr} {era}_L2Relative_{algo}{cone_size}{jet_type}.txt
       cp -r $HOME/JetMETAnalysis .
       scram b
 
@@ -408,6 +468,7 @@ closure:
         -nrefmax 3
 
       rm {input_file}
+      mv {output_path}/Closure_*.root {output_path}/Closure.root
   environment:
     environment_type: docker-encapsulated
     image: alintulu/jec

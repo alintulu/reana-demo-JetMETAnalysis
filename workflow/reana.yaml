@@ -1,0 +1,13 @@
+version: 0.6.0
+inputs:
+  files:
+    - deriveL1.C
+    - reana.yaml
+    - workflow.yaml
+    - steps.yaml
+    - workflow_higher_level.yaml
+    - workflow_ntuple.yaml
+    - files.yml
+workflow:
+  type: yadage
+  file: workflow.yaml

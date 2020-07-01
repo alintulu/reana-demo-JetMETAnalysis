@@ -7,6 +7,21 @@ stages:
         output_file: '{workdir}/files.yml'
       step: {$ref: steps.yaml#/initialise}
 
+  - name: merge_ntuple
+    dependencies: [compute_l1s]
+    scheduler:
+      scheduler_type: multistep-stage
+      parameters:
+        input_file: {stages: 'initialise', output: PU_files, unwrap: true}
+        output_file: '{workdir}/merged.root'
+        release: 'CMSSW_10_6_12'
+        scram_arch: 'slc7_amd64_gcc700'
+      batchsize: 30
+      scatter:
+        method: zip
+        parameters: [input_file]
+      step: {$ref: steps.yaml#/merge_ntuple}
+
   - name: create_PU_dist
     scheduler:
       scheduler_type: singlestep-stage
@@ -58,7 +73,7 @@ stages:
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
         output_path: '{workdir}'
-        output_file: '{workdir}/output_ak4pfchs.root'
+        output_file: '{workdir}/Matchedjets.root'
       scatter:
         method: zip
         parameters: [input_file, sleep]
@@ -77,7 +92,7 @@ stages:
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
         output_path: '{workdir}'
-        output_file: '{workdir}/ParallelMC_L1FastJet_AK4PFchs.txt'
+        output_file: '{workdir}/L1FastJet.txt'
       step: {$ref: steps.yaml#/compute_l1}
 
   - name: higher_level
@@ -86,10 +101,10 @@ stages:
       scheduler_type: multistep-stage
       parameters:
         l1_corr: {stages: 'compute_l1', output: l1_corr}
+        era: 'ParallelMC'
         algo: 'AK'
         cone_size: '8'
         jet_type: 'PFchs'
- #       input_file: {stages: 'merge_ntuple', output: merged}
         input_file: {stages: 'initialise', output: PU_files, unwrap: true}
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
         release: 'CMSSW_10_6_12'
@@ -113,7 +128,7 @@ stages:
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
         output_path: '{workdir}'
-        output_file: '{workdir}/ParallelMC_L2Relative_AK4PFchs.txt'
+        output_file: '{workdir}/L2Relative.txt'
       step: {$ref: 'steps.yaml#/compute_l2l3'}
 
   - name: closure
@@ -123,7 +138,6 @@ stages:
       parameters:
         l1_corr: {stages: 'compute_l1', output: l1_corr}
         l2l3_corr: {stages: 'compute_l2l3', output: l2l3_corr}
-#        input_file: {stages: 'merge_ntuple', output: merged}
         input_file: {stages: 'higher_level[*].apply_l1', output: merged}
         algo: 'AK'
         cone_size: '8'
@@ -133,7 +147,7 @@ stages:
         scram_arch: 'slc7_amd64_gcc700'
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
         output_path: '{workdir}'
-        output_file: '{workdir}/Closure_ak4pfchs.root'
+        output_file: '{workdir}/Closure.root'
       scatter:
         method: zip
         parameters: [input_file]
@@ -149,5 +163,5 @@ stages:
         scram_arch: 'slc7_amd64_gcc700'
         output_path_eos: '/eos/user/a/adlintul/reana/plot_closure/17062020_full_k8s/'
         output_path: '{workdir}/'
-        output_file: '{workdir}/Closure_ak4pfchs.root'
+        output_file: '{workdir}/Closure_ak8pfchs.root'
       step: {$ref: 'steps.yaml#/plot_closure'}
