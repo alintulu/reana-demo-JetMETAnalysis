@@ -117,20 +117,6 @@ match_lumi:
     image: alintulu/cmssw
     imagetag: 10_6_12-compiled
 
-initialise2:
-  process:
-    process_type: interpolated-script-cmd
-    interpreter: bash
-    script: |
-      cp $HOME/helper/Matchedfiles.yml {output_file}
-  publisher:
-    publisher_type: fromyaml-pub
-    yamlfile: 'Matchedfiles.yml'
-  environment:
-    environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
-
 match_jets:
   process:
     process_type: interpolated-script-cmd

@@ -7,21 +7,6 @@ stages:
         output_file: '{workdir}/files.yml'
       step: {$ref: steps.yaml#/initialise}
 
-  - name: merge_ntuple
-    dependencies: [compute_l1s]
-    scheduler:
-      scheduler_type: multistep-stage
-      parameters:
-        input_file: {stages: 'initialise', output: PU_files, unwrap: true}
-        output_file: '{workdir}/merged.root'
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-      batchsize: 30
-      scatter:
-        method: zip
-        parameters: [input_file]
-      step: {$ref: steps.yaml#/merge_ntuple}
-
   - name: create_PU_dist
     scheduler:
       scheduler_type: singlestep-stage
