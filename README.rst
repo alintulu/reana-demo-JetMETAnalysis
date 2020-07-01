@@ -180,7 +180,7 @@ express the computational steps in a declarative manner. The `workflow.yaml <wor
    +-------------------+
      |      |      |    
      |      |      |
-     v      v      v               
+     v      v      v  <-- Merge            
     +--------------+   
     | Compute L2L3 |   Single process
     +--------------+
@@ -249,8 +249,6 @@ We can now install the REANA command-line client, run the analysis and download 
     $ reana-client status
     $ # list output files
     $ reana-client ls
-    $ # download generated plots
-    $ reana-client download plot_closure/
 
 Please see the `REANA-Client <https://reana-client.readthedocs.io/>`_
 documentation for more detailed explanation of typical ``reana-client`` usage
