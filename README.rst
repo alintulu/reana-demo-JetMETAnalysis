@@ -32,7 +32,7 @@ This anaylsis is built up my multiple scripts written in C++. The main analysis 
 Step 0: Create Ntuples
     Starting from a larger data format, a preliminary filter is applied in order to extract only the information useful for our specfic need. This step produces the so called Ntuples, which can be analysed much faster than complete data files. For AODSIM and MINIAOD the creation is performed with tools implemented in the CMSSW software.
     
-_`run_JRA_cfg.py <https://github.com/alintulu/JetMETAnalysis/blob/9b42bae09181849044c31a5854bf064e2287e714/JetAnalyzers/test/run_JRA_cfg.py>`_
+`run_JRA_cfg.py <https://github.com/alintulu/JetMETAnalysis/blob/9b42bae09181849044c31a5854bf064e2287e714/JetAnalyzers/test/run_JRA_cfg.py>`_ - Create Ntuples
 
 This script is responsible for creating the Ntuples.
 
