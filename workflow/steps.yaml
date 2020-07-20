@@ -21,23 +21,23 @@ initialise:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
 
 create_PU_dist:
   process:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
 
       cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/MyMCPileupHistogram.root {PU_dist_mc} 
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -48,13 +48,10 @@ list_lumi:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
-      cp $HOME/helper/ListRunLumi.cpp .
-      cp $HOME/helper/makefile .
-      make RunListRunLumi
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
 
@@ -86,7 +83,7 @@ list_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -97,14 +94,10 @@ match_lumi:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
-      cp $HOME/helper/MatchFiles.cpp .
-      cp $HOME/helper/PrepareMatching.cpp .
-      cp $HOME/helper/makefile .
-      make RunMatchFiles RunPrepareMatching
 
       cat {lumi_file_noPU} {lumi_file_PU} | ./RunMatchFiles > MatchedFiles
       echo 'MatchedFiles:' > {output_file}
@@ -115,16 +108,16 @@ match_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
 
 match_jets:
   process:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: | 
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
       cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
 
@@ -178,7 +171,7 @@ match_jets:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -190,11 +183,10 @@ compute_l1:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: | 
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
-      cp $REANA_WORKSPACE/deriveL1.C .
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
       merge=output_$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]').root
@@ -217,7 +209,7 @@ compute_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -228,9 +220,9 @@ apply_l1:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
       cp {l1_corr} {era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
 
@@ -250,7 +242,7 @@ apply_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -262,9 +254,9 @@ histogram:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
       cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
       cp $HOME/JetMETAnalysis/JetAnalyzers/config/jra_dr_finebinning.config jra.config
@@ -292,7 +284,7 @@ histogram:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -303,9 +295,9 @@ compute_l2l3:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
 
       hadd -k -f -n 5 {output_path}/Merged.root {input_file}
@@ -332,7 +324,7 @@ compute_l2l3:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -343,9 +335,9 @@ closure:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      "Setting up ${CMSSW_VERSION}"
+      echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
       cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
       cp {l1_corr} {era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
@@ -379,7 +371,7 @@ closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -391,9 +383,9 @@ plot_closure:
     interpreter: zsh
     script: |
       mkdir -p {output_path}
-      "Setting up ${CMSSW_VERSION}"
+      ehco "Setting up {release}"
       source /opt/cms/cmsset_default.sh
-      cd $HOME/${CMSSW_VERSION}/src
+      cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
       
       hadd -k -f -n 5 {output_path}/Merged.root {input_file}
@@ -412,7 +404,7 @@ plot_closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled
+    imagetag: 10_6_12-compiled-utils-test
   publisher:
     publisher_type: interpolated-pub
     publish:

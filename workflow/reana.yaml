@@ -1,7 +1,6 @@
 version: 0.6.0
 inputs:
   files:
-    - deriveL1.C
     - reana.yaml
     - workflow.yaml
     - steps.yaml
