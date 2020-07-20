@@ -3,7 +3,7 @@
 # SCRAM ARCH: slc7_amd64_gcc700
 FROM clelange/cmssw:10_6_12
 
-USER root
+USER cmsusr
 
 # Add code
 ADD /code/utils $HOME/utils
