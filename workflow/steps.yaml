@@ -409,3 +409,60 @@ plot_closure:
     publisher_type: interpolated-pub
     publish:
       closure: '{output_file}'
+
+plot_comparison:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: zsh
+    script: |
+      mkdir -p {output_path}
+      ehco "Setting up {release}"
+      source /opt/cms/cmsset_default.sh
+      cd $HOME/{release}/src
+      eval `scramv1 runtime -sh`
+
+      echo "Downloading corrections from Github for comparison.."
+      rawPath=https://raw.githubusercontent.com/cms-jet/JECDatabase/master/textFiles
+      for version in {versions}; do
+        mkdir -p JECDatabase/$version
+        for level in {levels}; do
+          wget $rawPath/$version/$version\_$level\_{algo}{cone_size}{jet_type}.txt -P JECDatabase/$version
+          wget $rawPath/$version/$version\_"Uncertainty"_{algo}{cone_size}{jet_type}.txt -P JECDatabase/$version
+        done
+      done
+      
+      versions=$(echo {versions} | sed -e 's/\s\+/,/g')
+      echo "Computing eta dependent comparisons.."
+      for pt in {fix_pt}; do
+        for rho in {fix_rho}; do  
+          ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Eta --Min -5.18 --Max 5.18 --NBin -1 --FixPT $pt --FixRho $rho >> eta_dependent.txt
+        done
+      done
+     
+      python drawComparisons.py --Dependent Eta
+
+      echo "Computing pT dependent comparisons.."
+      for eta in {fix_eta}; do
+        for rho in {fix_rho}; do  
+          ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent PT --Min 1 --Max 7000 --NBin 100 --FixEta $eta --FixRho $rho >> pt_dependent.txt
+        done
+      done
+ 
+      python drawComparisons.py --Dependent PT
+
+      echo "Computing rho dependent comparisons.."
+      for eta in {fix_eta}; do
+        for pt in {fix_pt}; do  
+          ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Rho --Min 0 --Max 70 --NBin 50 --FixPT $pt --FixEta $eta >> rho_dependent.txt
+        done
+      done
+
+      python drawComparisons.py --Dependent Rho
+  environment:
+    environment_type: docker-encapsulated
+    image: alintulu/cmssw
+    imagetag: 10_6_12-compiled-utils-test
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      comparison: '{output_file}'
