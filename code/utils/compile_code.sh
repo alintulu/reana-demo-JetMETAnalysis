@@ -15,4 +15,8 @@ scram b
 echo "Compiling helper scripts..."
 cp $HOME/utils/* .
 make all
+
+echo "Compiling comparison plot scripts..."
+cp $HOME/comparisonPlots/* .
+make all
 echo "Done with compilation."

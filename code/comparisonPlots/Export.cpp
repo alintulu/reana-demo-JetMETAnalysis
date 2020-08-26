@@ -28,10 +28,24 @@ int main(int argc, char *argv[])
 
    enum ModeType {Rho, PT, Eta, Phi, Area} Mode;
 
+   double FixedOne;
+   double FixedTwo;
+
    if(Dependent == "Rho")   Mode = Rho;
    if(Dependent == "PT")    Mode = PT;
    if(Dependent == "Eta")   Mode = Eta;
    if(Dependent == "Phi")   Mode = Phi;
+
+   if (Dependent == "Rho") {
+      FixedOne = FixPT;
+      FixedTwo = FixEta;
+   } else if (Dependent == "Eta") {
+      FixedOne = FixPT;
+      FixedTwo = FixRho;
+   } else if (Dependent == "PT") {
+      FixedOne = FixEta;
+      FixedTwo = FixRho;
+   }
 
    for(int i = 0; i < (int)Version.size(); i++)
    {
@@ -65,7 +79,7 @@ int main(int argc, char *argv[])
          NBin = EtaBins.size() - 1;
          
       if (i==0)
-         cout << NBin << " 0 0" << endl;
+         cout << NBin << " " << FixedOne << " " << FixedTwo << endl;
 
       for(int i = 0; i <= NBin; i++)
       {
