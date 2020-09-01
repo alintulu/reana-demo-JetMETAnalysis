@@ -160,9 +160,9 @@ stages:
         l2l3_corr: {stages: 'compute_l2l3', output: l2l3_corr}
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
-        output_path_eos: '/eos/user/a/adlintul/reana/plot_closure/17062020_full_k8s/'
         output_path: '{workdir}/'
         output_file: '{workdir}/Closure_ak8pfchs.root'
+        era: 'ParallelMC'
         algo: 'AK'
         cone_size: '8'
         jet_type: 'PFchs'

@@ -1,10 +1,12 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Agg') # Matplotlib chooses Xwindows backend by default. You need to set matplotlib to not use the Xwindows backend
 import matplotlib.pyplot as plt
 import argparse
 
 # Set window full size
-manager = plt.get_current_fig_manager()
-manager.resize(*manager.window.maxsize())
+#manager = plt.get_current_fig_manager()
+#manager.resize(*manager.window.maxsize())
 
 # Set text size for plots
 plt.rcParams.update({'font.size': 12})
@@ -97,6 +99,8 @@ for l in range(NLevels):
     # Loop over levels (like "L1FastJet L2L3Residual" etc...)
     for v in range(NVersions):
 
+        print("  Plotting version {}".format(args.Versions[v]))
+
         # Set colors for plots
         c=next(color)
         
@@ -117,12 +121,12 @@ for l in range(NLevels):
         if (v !=0): plotRatio(x, dy, dy0, c, ax=unc_ax_sub)
         
     # Shrink current axis's height by 10% on the bottom
-    box = corr_ax_main.get_position()
-    corr_ax_main.set_position([box.x0, box.y0 + box.height * 0.05,
-                    box.width, box.height * 0.95])
+    # box = corr_ax_main.get_position()
+    # corr_ax_main.set_position([box.x0, box.y0 + box.height * 0.05,
+    #                 box.width, box.height * 0.95])
 
-    unc_ax_main.set_position([box.x0, box.y0 + box.height * 0.05,
-                    box.width, box.height * 0.95])
+    # unc_ax_main.set_position([box.x0, box.y0 + box.height * 0.05,
+    #                 box.width, box.height * 0.95])
 
     # Put a legend below current axis
     corr_ax_main.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
@@ -131,5 +135,9 @@ for l in range(NLevels):
             fancybox=True, shadow=True, ncol=5)
 
     #plt.show()
-    corr_fig.savefig('JECChart_Correction_{}_{}.png'.format(args.Versions[0], args.Levels[l]), bbox_inches='tight', dpi=100)
-    unc_fig.savefig('JECChart_Uncertanity_{}_{}.png'.format(args.Versions[0], args.Levels[l]), bbox_inches='tight', dpi=100)
+    corr_fig_name = 'JECChart_Correction_{}_{}_{}Dependent.png'.format(args.Versions[0], args.Levels[l], args.Dependent)
+    unc_fig_name = 'JECChart_Uncertanity_{}_{}_{}Dependent.png'.format(args.Versions[0], args.Levels[l], args.Dependent)
+    corr_fig.savefig(corr_fig_name, bbox_inches='tight', dpi=100)
+    print("Saved correction plot as {}".format(corr_fig_name))
+    unc_fig.savefig(unc_fig_name, bbox_inches='tight', dpi=100)
+    print("Saved uncertanity plot as {}".format(unc_fig_name))

@@ -21,7 +21,7 @@ initialise:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
 
 create_PU_dist:
   process:
@@ -37,7 +37,7 @@ create_PU_dist:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -83,7 +83,7 @@ list_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -108,7 +108,7 @@ match_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
 
 match_jets:
   process:
@@ -171,7 +171,7 @@ match_jets:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -209,7 +209,7 @@ compute_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -242,7 +242,7 @@ apply_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -284,7 +284,7 @@ histogram:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -324,7 +324,7 @@ compute_l2l3:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -371,7 +371,7 @@ closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -404,7 +404,7 @@ plot_closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -415,17 +415,14 @@ plot_comparison:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      mkdir -p {output_path}
       echo "Setting up {release}"
       source /opt/cms/cmsset_default.sh
       cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
 
-      mkdir -p JECDatabase
+      mkdir -p JECDatabase/{era}
       cp {l1_corr} JECDatabase/{era}/{era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
       cp {l2l3_corr} JECDatabase/{era}/{era}_L2L3Residual_{algo}{cone_size}{jet_type}.txt
-
-      rawPath=https://raw.githubusercontent.com/cms-jet/JECDatabase/master/textFiles
 
       echo "Downloading corrections from Github.."
       rawPath=https://raw.githubusercontent.com/cms-jet/JECDatabase/master/textFiles
@@ -450,7 +447,7 @@ plot_comparison:
           done
       done
 
-      python DrawPlot.py --Dependent Eta --Levels {levels} --Versions {versions}
+      python DrawPlot.py --Dependent Eta --Levels {levels} --Versions {era} {versions}
 
       echo "Computing PT dependent comparisons.."
       for level in {levels}; do
@@ -464,7 +461,7 @@ plot_comparison:
           done
       done
 
-      python DrawPlot.py --Dependent PT --Levels {levels} --Versions {versions}
+      python DrawPlot.py --Dependent PT --Levels {levels} --Versions {era} {versions}
 
       echo "Computing Rho dependent comparisons.."
       for level in {levels}; do
@@ -478,11 +475,11 @@ plot_comparison:
           done
       done
 
-      python DrawPlot.py --Dependent Rho --Levels {levels} --Versions {versions}
+      python DrawPlot.py --Dependent Rho --Levels {levels} --Versions {era} {versions}
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-compiled-utils-test
+    imagetag: 10_6_12-comparison
   publisher:
     publisher_type: interpolated-pub
     publish:
