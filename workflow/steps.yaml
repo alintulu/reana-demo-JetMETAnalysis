@@ -21,7 +21,7 @@ initialise:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
 
 create_PU_dist:
   process:
@@ -37,7 +37,7 @@ create_PU_dist:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -83,7 +83,7 @@ list_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -108,7 +108,7 @@ match_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
 
 match_jets:
   process:
@@ -121,10 +121,10 @@ match_jets:
       eval `scramv1 runtime -sh`
       cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
 
-      echo I will sleep for $(({sleep}*0)) minutes
+      echo I will sleep for $(({sleep}*10)) minutes
       echo Time when sleep started $(date +"%T")
 
-      sleep $(({sleep}*0))m
+      sleep $(({sleep}*10))m
 
       echo Time when sleep is over $(date +"%T")
       echo Starting to hadd..
@@ -171,7 +171,7 @@ match_jets:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -209,7 +209,7 @@ compute_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -242,7 +242,7 @@ apply_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -284,7 +284,7 @@ histogram:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -320,11 +320,11 @@ compute_l2l3:
         -l2pffit splineAkima \
         -ptclip 20
 
-      cp {output_path}/*.txt {output_path}/L2Relative.txt
+      cp {output_path}/{era}*.txt {output_path}/L2Relative.txt
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -371,7 +371,7 @@ closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -404,7 +404,7 @@ plot_closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -447,7 +447,7 @@ plot_comparison:
           done
       done
 
-      python DrawPlot.py --Dependent Eta --Levels {levels} --Versions {era} {versions}
+      python PlotCompareVersions.py --Dependent Eta --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
 
       echo "Computing PT dependent comparisons.."
       for level in {levels}; do
@@ -461,7 +461,7 @@ plot_comparison:
           done
       done
 
-      python DrawPlot.py --Dependent PT --Levels {levels} --Versions {era} {versions}
+      python PlotCompareVersions.py --Dependent PT --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
 
       echo "Computing Rho dependent comparisons.."
       for level in {levels}; do
@@ -475,11 +475,11 @@ plot_comparison:
           done
       done
 
-      python DrawPlot.py --Dependent Rho --Levels {levels} --Versions {era} {versions}
+      python PlotCompareVersions.py --Dependent Rho --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison
+    imagetag: 10_6_12-comparison-plots
   publisher:
     publisher_type: interpolated-pub
     publish:

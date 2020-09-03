@@ -129,7 +129,7 @@ analysis framework that was packaged for Docker in `clelange/cmssw:10_6_12 <http
 
 Build the Docker image via the command line interface
 
-  ``docker build -t alintulu/cmssw:10_6_12-compiled .``
+  ``docker build -t alintulu/cmssw:10_6_12 .``
 
 4. Analysis workflow
 --------------------

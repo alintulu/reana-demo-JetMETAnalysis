@@ -6,6 +6,7 @@ FROM clelange/cmssw:10_6_12
 USER cmsusr
 
 # Add code
+ADD /code/comparisonPlots $HOME/comparisonPlots
 ADD /code/utils $HOME/utils
 ADD /code/JetMETAnalysis $HOME/JetMETAnalysis
 
