@@ -6,10 +6,12 @@ Changes
 
 - Plot comparisons of corrections and uncertainties between different runs
 - Update submodule JetMETAnalysis to version with pt-clipping as well as fit function "ak4" for L1 and for L2L3
-  ```
+
+.. code-block:: console
+
   -l2ppfit Standard+Gaussian \
   -ptclipfit true
-  ```
+
 
 20-07-2020
 ---------------------------
