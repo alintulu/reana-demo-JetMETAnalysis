@@ -136,8 +136,8 @@ for l in range(NLevels):
             fancybox=True, shadow=True, ncol=5)
 
     #plt.show()
-    corr_fig_name = '{}/JECChart_Correction_{}_{}_{}Dependent.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Dependent)
-    unc_fig_name = '{}/JECChart_Uncertanity_{}_{}_{}Dependent.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Dependent)
+    corr_fig_name = '{}/JECChart_Correction_{}_{}_{}Dependent_{}{}_{}{}.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo)
+    unc_fig_name = '{}/JECChart_Uncertanity_{}_{}_{}Dependent_{}{}_{}{}.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo)
     corr_fig.savefig(corr_fig_name, bbox_inches='tight', dpi=100)
     print("Saved correction plot as {}".format(corr_fig_name))
     unc_fig.savefig(unc_fig_name, bbox_inches='tight', dpi=100)

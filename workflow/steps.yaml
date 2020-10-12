@@ -200,7 +200,7 @@ compute_l1:
         -algo2 $algorithm \
         -highPU false \
         -useNPU false \
-        -functionType standard \
+        -functionType ak4 \
         -era {era}PreDeriveL1
 
       root -b -q -l `printf "deriveL1.C+(\"{output_path}\",\"$algorithm\",\"{algo}{cone_size}{jet_type}\",\"{era}\")"`
@@ -317,8 +317,8 @@ compute_l2l3:
         -delphes false \
         -maxFitIter 30 \
         -l2calofit DynamicMin \
-        -l2pffit splineAkima \
-        -ptclip 20
+        -l2pffit Standard+Gaussian \
+        -ptclipfit true
 
       cp {output_path}/{era}*.txt {output_path}/L2Relative.txt
   environment:
