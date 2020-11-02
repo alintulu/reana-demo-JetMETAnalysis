@@ -21,7 +21,7 @@ initialise:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
 
 create_PU_dist:
   process:
@@ -37,7 +37,7 @@ create_PU_dist:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -83,7 +83,7 @@ list_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -108,7 +108,7 @@ match_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
 
 match_jets:
   process:
@@ -121,10 +121,10 @@ match_jets:
       eval `scramv1 runtime -sh`
       cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
 
-      echo I will sleep for $(({sleep}*10)) minutes
+      echo I will sleep for $(({sleep}*15)) minutes
       echo Time when sleep started $(date +"%T")
 
-      sleep $(({sleep}*10))m
+      sleep $(({sleep}*15))m
 
       echo Time when sleep is over $(date +"%T")
       echo Starting to hadd..
@@ -146,7 +146,7 @@ match_jets:
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
 
-      jet_synchtest_x \
+      jet_match_x \
         -basepath '//' \
         -samplePU {output_path}/PUFile.root \
         -sampleNoPU {output_path}/NoPUFile.root \
@@ -159,6 +159,7 @@ match_jets:
         -npvRhoNpuBinWidth 10 \
         -NBinsNpvRhoNpu 6 \
         -MCPUReWeighting {PU_dist_mc} \
+        -MCPUHistoName pileup \
         -DataPUReWeighting `pwd`/MyDataPileupHistogram.root \
         -useweight true \
         -nrefmax 3 \
@@ -171,7 +172,7 @@ match_jets:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -209,7 +210,7 @@ compute_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -242,7 +243,7 @@ apply_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -284,7 +285,7 @@ histogram:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -324,7 +325,7 @@ compute_l2l3:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -371,7 +372,7 @@ closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -404,7 +405,7 @@ plot_closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -436,50 +437,78 @@ plot_comparison:
 
       versions=$(echo "{era} {versions}" | sed -e 's/\s\+/,/g')
       echo "Computing Eta dependent comparisons.."
-      for level in {levels}; do
-          echo "  Level" $level
-          for pt in {fix_pt}; do
-              echo "    PT" $pt
-              for rho in {fix_rho}; do  
-              echo "      Rho" $rho
-              ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Eta --Min -5.18 --Max 5.18 --NBin -1 --FixPT $pt --FixRho $rho >> EtaDependent.txt
-              done
+      for pt in {fix_pt}; do
+          echo "    PT" $pt
+          for rho in {fix_rho}; do  
+             echo "      Rho" $rho
+             for level in {levels}; do
+                echo "  Level" $level
+                ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Eta --Min -4.18 --Max 5.18 --NBin -1 --FixPT $pt --FixRho $rho >> EtaDependent.txt 
+             done
+             python PlotCompareVersions.py --Dependent Eta --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
+             rm EtaDependent.txt
           done
       done
-
-      python PlotCompareVersions.py --Dependent Eta --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
 
       echo "Computing PT dependent comparisons.."
-      for level in {levels}; do
-          echo "  Level" $level
-          for eta in {fix_eta}; do
-              echo "    Eta" $eta
-              for rho in {fix_rho}; do 
-                  echo "      Rho" $rho
-                  ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent PT --Min 1 --Max 7000 --NBin 100 --FixEta $eta --FixRho $rho >> PTDependent.txt
-              done
-          done
+      for eta in {fix_eta}; do
+         echo "    Eta" $eta
+         for rho in {fix_rho}; do
+            echo "      Rho" $rho
+            for level in {levels}; do
+               echo "  Level" $level
+               ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent PT --Min 1 --Max 7000 --NBin 100 --FixEta $eta --FixRho $rho >> PTDependent.txt
+            done
+            python PlotCompareVersions.py --Dependent PT --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
+            rm PTDependent.txt
+         done
       done
-
-      python PlotCompareVersions.py --Dependent PT --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
 
       echo "Computing Rho dependent comparisons.."
-      for level in {levels}; do
-          echo "  Level" $level
-          for eta in {fix_eta}; do
-              echo "    Eta" $eta
-              for pt in {fix_pt}; do 
-                  echo "      PT" $pt
-                  ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Rho --Min 0 --Max 70 --NBin 50 --FixPT $pt --FixEta $eta >> RhoDependent.txt
-              done
-          done
+      for eta in {fix_eta}; do
+         echo "    Eta" $eta
+         for pt in {fix_pt}; do
+            echo "      PT" $pt
+            for level in {levels}; do
+               echo "  Level" $level
+               ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Rho --Min 0 --Max 70 --NBin 50 --FixPT $pt --FixEta $eta >> RhoDependent.txt
+            done
+            python PlotCompareVersions.py --Dependent Rho --Levels {levels} --Versions {era} {versions} --OutputPath {output_path} 
+            rm RhoDependent.txt
+         done
       done
 
-      python PlotCompareVersions.py --Dependent Rho --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
+     # echo "Computing PT dependent comparisons.."
+     # for level in {levels}; do
+     #     echo "  Level" $level
+     #     for eta in {fix_eta}; do
+     #         echo "    Eta" $eta
+     #         for rho in {fix_rho}; do 
+     #             echo "      Rho" $rho
+     #             ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent PT --Min 1 --Max 7000 --NBin 100 --FixEta $eta --FixRho $rho >> PTDependent.txt
+     #         done
+     #     done
+     # done
+
+     # python PlotCompareVersions.py --Dependent PT --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
+
+     # echo "Computing Rho dependent comparisons.."
+     # for level in {levels}; do
+     #     echo "  Level" $level
+     #     for eta in {fix_eta}; do
+     #         echo "    Eta" $eta
+     #         for pt in {fix_pt}; do 
+     #             echo "      PT" $pt
+     #             ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Rho --Min 0 --Max 70 --NBin 50 --FixPT $pt --FixEta $eta >> RhoDependent.txt
+     #         done
+     #     done
+     # done
+
+     # python PlotCompareVersions.py --Dependent Rho --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-comparison-plots
+    imagetag: 10_6_12-ilias-patch-2
   publisher:
     publisher_type: interpolated-pub
     publish:
