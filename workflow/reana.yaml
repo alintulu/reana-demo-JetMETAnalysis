@@ -7,6 +7,8 @@ inputs:
     - workflow_higher_level.yaml
     - workflow_ntuple.yaml
     - files.yml
+    - MyMCPileupHistogram.root
+    - MyDataPileupHistogram.root
 workflow:
   type: yadage
   file: workflow.yaml

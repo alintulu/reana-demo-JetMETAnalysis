@@ -29,6 +29,7 @@ stages:
         release: {stages: init, output: release, unwrap: true}
         scram_arch: {stages: init, output: scram_arch, unwrap: true}
         PU_dist_mc: {stages: init, output: PU_dist_mc, unwrap: true}
+        PU_dist_data: {stages: init, output: PU_dist_data, unwrap: true}
         output_path: '{workdir}'
         output_file: '{workdir}/jra_jecl1.root'
       step: {$ref: 'steps.yaml#/histogram'}
