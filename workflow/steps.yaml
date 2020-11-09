@@ -119,7 +119,6 @@ match_jets:
       source /opt/cms/cmsset_default.sh
       cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
-      cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
 
       echo I will sleep for $(({sleep}*15)) minutes
       echo Time when sleep started $(date +"%T")
@@ -160,7 +159,7 @@ match_jets:
         -NBinsNpvRhoNpu 6 \
         -MCPUReWeighting {PU_dist_mc} \
         -MCPUHistoName pileup \
-        -DataPUReWeighting `pwd`/MyDataPileupHistogram.root \
+        -DataPUReWeighting {PU_dist_data} \
         -useweight true \
         -nrefmax 3 \
         -doNotSave true
@@ -259,7 +258,6 @@ histogram:
       source /opt/cms/cmsset_default.sh
       cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
-      cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
       cp $HOME/JetMETAnalysis/JetAnalyzers/config/jra_dr_finebinning.config jra.config
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')l1:0.2
@@ -274,7 +272,7 @@ histogram:
         -flavorDefinition phys \
         -MCPUReWeighting {PU_dist_mc} \
         -MCPUHistoName pileup \
-        -DataPUReWeighting MyDataPileupHistogram.root \
+        -DataPUReWeighting {PU_dist_data} \
         -DataPUHistoName pileup \
         -output {output_file} \
         -useweight true \
@@ -340,7 +338,6 @@ closure:
       source /opt/cms/cmsset_default.sh
       cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
-      cp $HOME/JetMETAnalysis/workflow/HTCondor/Files/My*.root .
       cp {l1_corr} {era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
       cp {l2l3_corr} {era}_L2Relative_{algo}{cone_size}{jet_type}.txt
 
@@ -364,7 +361,7 @@ closure:
         -relrspmin 0.0 \
         -relrspmax 2.0 \
         -MCPUReWeighting {PU_dist_mc} \
-        -DataPUReWeighting MyDataPileupHistogram.root \
+        -DataPUReWeighting {PU_dist_data} \
         -nrefmax 3
 
       rm {input_file}

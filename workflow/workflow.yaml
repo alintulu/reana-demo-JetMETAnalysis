@@ -12,6 +12,7 @@ stages:
       scheduler_type: singlestep-stage
       parameters:
         mix_conf_mc: '2018_25ns_UltraLegacy_PoissonOOTPU'
+        PU_dist_loc: '$REANA_WORKSPACE/MyMCPileupHistogram.root'
         PU_dist_mc: '{workdir}/PU_dist_mc.root'
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
@@ -51,6 +52,7 @@ stages:
       parameters:
         input_file: {stages: 'match_lumi', output: MatchedFiles, unwrap: true}
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
+        PU_dist_data: '$REANA_WORKSPACE/MyDataPileupHistogram.root'
         sleep: ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19"]
         algo: 'AK'
         cone_size: '8'
@@ -92,6 +94,7 @@ stages:
         jet_type: 'PFchs'
         input_file: {stages: 'initialise', output: PU_files, unwrap: true}
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
+        PU_dist_data: '$REANA_WORKSPACE/MyDataPileupHistogram.root'
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
       batchsize: 10
@@ -131,6 +134,7 @@ stages:
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
+        PU_dist_data: '$REANA_WORKSPACE/MyDataPileupHistogram.root'
         output_path: '{workdir}'
         output_file: '{workdir}/Closure.root'
       scatter:
