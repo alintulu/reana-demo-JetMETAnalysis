@@ -1,174 +1,192 @@
 stages:
-  - name: initialise
+  - name: setup_code
     scheduler:
       scheduler_type: singlestep-stage
       parameters:
-        input_file: '$REANA_WORKSPACE/files.yml'
-        output_file: '{workdir}/files.yml'
-      step: {$ref: steps.yaml#/initialise}
-
-  - name: create_PU_dist
-    scheduler:
-      scheduler_type: singlestep-stage
-      parameters:
-        mix_conf_mc: '2018_25ns_UltraLegacy_PoissonOOTPU'
-        PU_dist_mc: '{workdir}/PU_dist_mc.root'
+        reana_workspace: '$REANA_WORKSPACE'
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
-      step: {$ref: steps.yaml#/create_PU_dist}
+      step: {$ref: steps.yaml#/setup_code}
 
-  - name: produce_ntuple
-    dependencies: [initialise]
+  - name: check_compilation
     scheduler:
       scheduler_type: singlestep-stage
       parameters:
-        input_file_PU: {stages: 'initialise', output: PU_files, unwrap: true}
-        input_file_noPU: {stages: 'initialise', output: noPU_files, unwrap: true}
-        algo: 'AK'
-        cone_size: '8'
-        jet_type: 'PFchs'
+        reana_workspace: '$REANA_WORKSPACE'
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
-      workflow: {$ref: workflow_ntuple.yaml}
+      step: {$ref: steps.yaml#/check_compilation}
 
-  - name: match_lumi
-    dependencies: [produce_ntuple]
-    scheduler:
-      scheduler_type: singlestep-stage
-      parameters:
-        lumi_file_PU: {stages: 'produce_ntuple[*].list_lumi_PU', output: lumi_file}
-        lumi_file_noPU: {stages: 'produce_ntuple[*].list_lumi_noPU', output: lumi_file}
-        batch_size: '10'
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-        output_file: '{workdir}/Matchedfiles.yml'
-      step: {$ref: steps.yaml#/match_lumi}
+  # - name: initialise
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       input_file: '$REANA_WORKSPACE/files.yml'
+  #       output_file: '{workdir}/files.yml'
+  #     step: {$ref: steps.yaml#/initialise}
+
+  # - name: create_PU_dist
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       mix_conf_mc: '2018_25ns_UltraLegacy_PoissonOOTPU'
+  #       PU_dist_mc: '{workdir}/PU_dist_mc.root'
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #     step: {$ref: steps.yaml#/create_PU_dist}
+
+  # - name: produce_ntuple
+  #   dependencies: [initialise]
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       input_file_PU: {stages: 'initialise', output: PU_files, unwrap: true}
+  #       input_file_noPU: {stages: 'initialise', output: noPU_files, unwrap: true}
+  #       algo: 'AK'
+  #       cone_size: '8'
+  #       jet_type: 'PFchs'
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #     workflow: {$ref: workflow_ntuple.yaml}
+
+  # - name: match_lumi
+  #   dependencies: [produce_ntuple]
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       lumi_file_PU: {stages: 'produce_ntuple[*].list_lumi_PU', output: lumi_file}
+  #       lumi_file_noPU: {stages: 'produce_ntuple[*].list_lumi_noPU', output: lumi_file}
+  #       batch_size: '10'
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #       output_file: '{workdir}/Matchedfiles.yml'
+  #     step: {$ref: steps.yaml#/match_lumi}
         
-  - name: match_jets
-    dependencies: [match_lumi]
-    scheduler:
-      scheduler_type: multistep-stage
-      parameters:
-        input_file: {stages: 'match_lumi', output: MatchedFiles, unwrap: true}
-        PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
-        sleep: ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19"]
-        algo: 'AK'
-        cone_size: '8'
-        jet_type: 'PFchs'
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-        output_path: '{workdir}'
-        output_file: '{workdir}/Matchedjets.root'
-      scatter:
-        method: zip
-        parameters: [input_file, sleep]
-      step: {$ref: steps.yaml#/match_jets}
+  # - name: match_jets
+  #   dependencies: [match_lumi]
+  #   scheduler:
+  #     scheduler_type: multistep-stage
+  #     parameters:
+  #       input_file: {stages: 'match_lumi', output: MatchedFiles, unwrap: true}
+  #       PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
+  #       sleep: ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19"]
+  #       algo: 'AK'
+  #       cone_size: '8'
+  #       jet_type: 'PFchs'
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #       output_path: '{workdir}'
+  #       output_file: '{workdir}/Matchedjets.root'
+  #     scatter:
+  #       method: zip
+  #       parameters: [input_file, sleep]
+  #     step: {$ref: steps.yaml#/match_jets}
 
-  - name: compute_l1
-    dependencies: [match_jets]
-    scheduler:
-      scheduler_type: singlestep-stage
-      parameters:
-        input_file: {stages: 'match_jets', output: matched_file}
-        algo: 'AK'
-        cone_size: '8'
-        jet_type: 'PFchs'
-        era: 'ParallelMC'
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-        output_path: '{workdir}'
-        output_file: '{workdir}/L1FastJet.txt'
-      step: {$ref: steps.yaml#/compute_l1}
+  # - name: compute_l1
+  #   dependencies: [match_jets]
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       input_file: {stages: 'match_jets', output: matched_file}
+  #       algo: 'AK'
+  #       cone_size: '8'
+  #       jet_type: 'PFchs'
+  #       era: 'ParallelMC'
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #       output_path: '{workdir}'
+  #       output_file: '{workdir}/L1FastJet.txt'
+  #     step: {$ref: steps.yaml#/compute_l1}
 
-  - name: higher_level
-    dependencies: [compute_l1]
-    scheduler:
-      scheduler_type: multistep-stage
-      parameters:
-        l1_corr: {stages: 'compute_l1', output: l1_corr}
-        era: 'ParallelMC'
-        algo: 'AK'
-        cone_size: '8'
-        jet_type: 'PFchs'
-        input_file: {stages: 'initialise', output: PU_files, unwrap: true}
-        PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-      batchsize: 10
-      scatter:
-        method: zip
-        parameters: [input_file]
-      workflow: {$ref: workflow_higher_level.yaml}
+  # - name: higher_level
+  #   dependencies: [compute_l1]
+  #   scheduler:
+  #     scheduler_type: multistep-stage
+  #     parameters:
+  #       l1_corr: {stages: 'compute_l1', output: l1_corr}
+  #       era: 'ParallelMC'
+  #       algo: 'AK'
+  #       cone_size: '8'
+  #       jet_type: 'PFchs'
+  #       input_file: {stages: 'initialise', output: PU_files, unwrap: true}
+  #       PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #     batchsize: 10
+  #     scatter:
+  #       method: zip
+  #       parameters: [input_file]
+  #     workflow: {$ref: workflow_higher_level.yaml}
 
-  - name: compute_l2l3
-    dependencies: [higher_level]
-    scheduler:
-      scheduler_type: singlestep-stage
-      parameters:
-        input_file: {stages: 'higher_level.[*].histogram', output: histo}
-        algo: 'AK'
-        cone_size: '8'
-        jet_type: 'PFchs'
-        era: 'ParallelMC'
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-        output_path: '{workdir}'
-        output_file: '{workdir}/L2Relative.txt'
-      step: {$ref: 'steps.yaml#/compute_l2l3'}
+  # - name: compute_l2l3
+  #   dependencies: [higher_level]
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       input_file: {stages: 'higher_level.[*].histogram', output: histo}
+  #       algo: 'AK'
+  #       cone_size: '8'
+  #       jet_type: 'PFchs'
+  #       era: 'ParallelMC'
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #       output_path: '{workdir}'
+  #       output_file: '{workdir}/L2Relative.txt'
+  #     step: {$ref: 'steps.yaml#/compute_l2l3'}
 
-  - name: closure
-    dependencies: [compute_l2l3]
-    scheduler:
-      scheduler_type: multistep-stage
-      parameters:
-        l1_corr: {stages: 'compute_l1', output: l1_corr}
-        l2l3_corr: {stages: 'compute_l2l3', output: l2l3_corr}
-        input_file: {stages: 'higher_level[*].apply_l1', output: merged}
-        algo: 'AK'
-        cone_size: '8'
-        jet_type: 'PFchs'
-        era: 'ParallelMC'
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-        PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
-        output_path: '{workdir}'
-        output_file: '{workdir}/Closure.root'
-      scatter:
-        method: zip
-        parameters: [input_file]
-      step: {$ref: 'steps.yaml#/closure'}
+  # - name: closure
+  #   dependencies: [compute_l2l3]
+  #   scheduler:
+  #     scheduler_type: multistep-stage
+  #     parameters:
+  #       l1_corr: {stages: 'compute_l1', output: l1_corr}
+  #       l2l3_corr: {stages: 'compute_l2l3', output: l2l3_corr}
+  #       input_file: {stages: 'higher_level[*].apply_l1', output: merged}
+  #       algo: 'AK'
+  #       cone_size: '8'
+  #       jet_type: 'PFchs'
+  #       era: 'ParallelMC'
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #       PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
+  #       output_path: '{workdir}'
+  #       output_file: '{workdir}/Closure.root'
+  #     scatter:
+  #       method: zip
+  #       parameters: [input_file]
+  #     step: {$ref: 'steps.yaml#/closure'}
 
-  - name: plots_closure
-    dependencies: [closure]
-    scheduler:
-      scheduler_type: singlestep-stage
-      parameters:
-        input_file: {stages: 'closure', output: closure}
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-        output_path_eos: '/eos/user/a/adlintul/reana/plot_closure/17062020_full_k8s/'
-        output_path: '{workdir}/'
-        output_file: '{workdir}/Closure_ak8pfchs.root'
-      step: {$ref: 'steps.yaml#/plot_closure'}
+  # - name: plots_closure
+  #   dependencies: [closure]
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       input_file: {stages: 'closure', output: closure}
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #       output_path_eos: '/eos/user/a/adlintul/reana/plot_closure/17062020_full_k8s/'
+  #       output_path: '{workdir}/'
+  #       output_file: '{workdir}/Closure_ak8pfchs.root'
+  #     step: {$ref: 'steps.yaml#/plot_closure'}
 
-  - name: plot_comparison
-    dependencies: [compute_l2l3]
-    scheduler:
-      scheduler_type: singlestep-stage
-      parameters:
-        l1_corr: {stages: 'compute_l1', output: l1_corr}
-        l2l3_corr: {stages: 'compute_l2l3', output: l2l3_corr}
-        release: 'CMSSW_10_6_12'
-        scram_arch: 'slc7_amd64_gcc700'
-        output_path: '{workdir}/'
-        output_file: '{workdir}/Closure_ak8pfchs.root'
-        era: 'ParallelMC'
-        algo: 'AK'
-        cone_size: '8'
-        jet_type: 'PFchs'
-        versions: 'Autumn18_V19_MC Autumn18_V13h_MC Summer16_07Aug2017_V11_MC Summer16_07Aug2017_V20_MC'
-        levels: 'L1FastJet L2L3Residual'
-        fix_pt: '30 100 300'
-        fix_rho: '20 40 60'
-        fix_eta: '0 1.5 2.3 3.0'
-      step: {$ref: 'steps.yaml#/plot_comparison'}
+  # - name: plot_comparison
+  #   dependencies: [compute_l2l3]
+  #   scheduler:
+  #     scheduler_type: singlestep-stage
+  #     parameters:
+  #       l1_corr: {stages: 'compute_l1', output: l1_corr}
+  #       l2l3_corr: {stages: 'compute_l2l3', output: l2l3_corr}
+  #       release: 'CMSSW_10_6_12'
+  #       scram_arch: 'slc7_amd64_gcc700'
+  #       output_path: '{workdir}/'
+  #       output_file: '{workdir}/Closure_ak8pfchs.root'
+  #       era: 'ParallelMC'
+  #       algo: 'AK'
+  #       cone_size: '8'
+  #       jet_type: 'PFchs'
+  #       versions: 'Autumn18_V19_MC Autumn18_V13h_MC Summer16_07Aug2017_V11_MC Summer16_07Aug2017_V20_MC'
+  #       levels: 'L1FastJet L2L3Residual'
+  #       fix_pt: '30 100 300'
+  #       fix_rho: '20 40 60'
+  #       fix_eta: '0 1.5 2.3 3.0'
+  #     step: {$ref: 'steps.yaml#/plot_comparison'}

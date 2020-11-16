@@ -1,3 +1,41 @@
+setup_code:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      echo "Setting up {release} with {scram_arch}"
+      export SCRAM_ARCH={scram_arch}
+      cmsrel {release}
+      cd {release}/src
+      cp -r {reana_workspace}/code/JetMETAnalysis JetMETAnalysis
+      eval `scramv1 runtime -sh`
+      scram b -j 8
+  environment:
+    environment_type: docker-encapsulated
+    image: clelange
+    imagetag: cc7-cms
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      ntuple_file: '{output_file}'
+
+check_compilation:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      cd {release}/src
+      eval `scramv1 runtime -sh`
+      jet_synchtest_x
+  environment:
+    environment_type: docker-encapsulated
+    image: clelange
+    imagetag: cc7-cms
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      ntuple_file: '{output_file}'
+
 ntuple:
   process:
     process_type: string-interpolated-cmd
