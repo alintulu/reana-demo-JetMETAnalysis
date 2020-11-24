@@ -9,16 +9,17 @@ import argparse
 #manager.resize(*manager.window.maxsize())
 
 # Set text size for plots
-plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 40})
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--Dependent')
+parser.add_argument('--Algorithm')
 parser.add_argument('--OutputPath', default=".")
 parser.add_argument('--Versions', nargs='+')
 parser.add_argument('--Levels', nargs='+')
 args = parser.parse_args()
 
-print("Plotting comparison plots with {} dependent".format(args.Dependent))
+print("INFO | Plotting comparison plots with {} dependent".format(args.Dependent))
 
 # Number of versions
 NVersions = len(args.Versions)
@@ -88,19 +89,30 @@ for l in range(NLevels):
     # Corrections figure
     corr_fig, (corr_ax_main, corr_ax_sub) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]}, sharex=True)
     corr_fig.set_size_inches(32, 18)
-    addLabel(corr_ax_main, ylabel="Correction", title="{} - {} dependent ({}: {} {}: {})".format(args.Levels[l], args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo))
-    addLabel(corr_ax_sub, xlabel=args.Dependent, ylabel="{} / Published data".format(args.Versions[0]))
+    corr_ax_main.tick_params(axis='y', labelsize=40)
+    corr_ax_main.tick_params(axis='x', labelsize=40)
+    corr_ax_sub.tick_params(axis='y', labelsize=40)
+    corr_ax_sub.tick_params(axis='x', labelsize=40)
+    corr_ax_main.grid()
+    corr_ax_sub.grid()
+    if args.Dependent == "Eta":
+      corr_ax_sub.set_xticks(range(-5, 6))
+    if args.Dependent == "PT":
+      corr_ax_main.set_xscale('log')
+
+    addLabel(corr_ax_main, ylabel="Correction", title="{} - {} - {} dependent ({}: {} {}: {})".format(args.Levels[l], args.Algorithm, args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo))
+    addLabel(corr_ax_sub, xlabel=args.Dependent, ylabel="Ratio")#"{} / Published data".format(args.Versions[0]))
 
     # Uncertanity figure
     unc_fig, (unc_ax_main, unc_ax_sub) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]}, sharex=True)
     unc_fig.set_size_inches(32, 18)
-    addLabel(unc_ax_main, ylabel="Uncertanity", title="{} - {} dependent ({}: {} {}: {})".format(args.Levels[l], args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo))
+    addLabel(unc_ax_main, ylabel="Uncertanity", title="{} - {} - {} dependent ({}: {} {}: {})".format(args.Levels[l], args.Algorithm, args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo))
     addLabel(unc_ax_sub, xlabel=args.Dependent)
 
-    # Loop over levels (like "L1FastJet L2L3Residual" etc...)
+    # Loop over levels (like "L1FastJet L2Relative" etc...)
     for v in range(NVersions):
 
-        print("  Plotting version {}".format(args.Versions[v]))
+        print("INFO | Plotting version {}".format(args.Versions[v]))
 
         # Set colors for plots
         c=next(color)
@@ -121,10 +133,10 @@ for l in range(NLevels):
         plotCorrection(x, dy, c, ax=unc_ax_main, label=args.Versions[v])
         if (v !=0): plotRatio(x, dy, dy0, c, ax=unc_ax_sub)
         
-    # Shrink current axis's height by 10% on the bottom
-    # box = corr_ax_main.get_position()
-    # corr_ax_main.set_position([box.x0, box.y0 + box.height * 0.05,
-    #                 box.width, box.height * 0.95])
+    # Shrink current axis's height by 10% on the bottom to make both plots fit nicely
+    box = corr_ax_main.get_position()
+    corr_ax_main.set_position([box.x0, box.y0 + box.height * 0.1,
+                     box.width, box.height * 0.90])
 
     # unc_ax_main.set_position([box.x0, box.y0 + box.height * 0.05,
     #                 box.width, box.height * 0.95])
@@ -136,9 +148,9 @@ for l in range(NLevels):
             fancybox=True, shadow=True, ncol=5)
 
     #plt.show()
-    corr_fig_name = '{}/JECChart_Correction_{}_{}_{}Dependent_{}{}_{}{}.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo)
-    unc_fig_name = '{}/JECChart_Uncertanity_{}_{}_{}Dependent_{}{}_{}{}.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo)
+    corr_fig_name = '{}/JECChart_Correction_{}_{}_{}_{}Dependent_{}{}_{}{}.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Algorithm, args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo)
+    unc_fig_name = '{}/JECChart_Uncertanity_{}_{}_{}_{}Dependent_{}{}_{}{}.png'.format(args.OutputPath.rstrip('\\'), args.Versions[0], args.Levels[l], args.Algorithm, args.Dependent, FixOneLabel, FixOne, FixTwoLabel, FixTwo)
     corr_fig.savefig(corr_fig_name, bbox_inches='tight', dpi=100)
-    print("Saved correction plot as {}".format(corr_fig_name))
-    unc_fig.savefig(unc_fig_name, bbox_inches='tight', dpi=100)
-    print("Saved uncertanity plot as {}".format(unc_fig_name))
+    print("INFO | Saved correction plot as {}".format(corr_fig_name))
+    #unc_fig.savefig(unc_fig_name, bbox_inches='tight', dpi=100)
+    #print("Saved uncertanity plot as {}".format(unc_fig_name))
