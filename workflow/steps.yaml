@@ -1,3 +1,26 @@
+setup_code:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: zsh
+    script: |
+      echo "Setting up {release}"
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd {home}
+      export SCRAM_ARCH={scram_arch}
+      scramv1 project CMSSW {release}
+      cd {home}/{release}/src
+      eval `scramv1 runtime -sh`
+      echo "Compiling code"
+      cp -r {home}/code/JetMETAnalysis .
+      scram b -j 8
+  environment:
+    environment_type: docker-encapsulated
+    image: clelange/cc7-cms
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      code_path: '{home}/{release}/src'
+
 ntuple:
   process:
     process_type: string-interpolated-cmd
