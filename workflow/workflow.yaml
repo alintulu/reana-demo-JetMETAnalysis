@@ -1,36 +1,28 @@
 stages:
-  - name: initialise
-    scheduler:
-      scheduler_type: singlestep-stage
-      parameters:
-        input_file: '$REANA_WORKSPACE/files.yml'
-        output_file: '{workdir}/files.yml'
-      step: {$ref: steps.yaml#/initialise}
-
   - name: create_PU_dist
     scheduler:
       scheduler_type: singlestep-stage
       parameters:
         mix_conf_mc: '2018_25ns_UltraLegacy_PoissonOOTPU'
-        PU_dist_loc: '$REANA_WORKSPACE/MyMCPileupHistogram.root'
+        PU_dist_loc: '$REANA_WORKSPACE/input/MyMCPileupHistogram.root'
         PU_dist_mc: '{workdir}/PU_dist_mc.root'
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
-      step: {$ref: steps.yaml#/create_PU_dist}
+      step: {$ref: workflow/steps.yaml#/create_PU_dist}
 
   - name: produce_ntuple
-    dependencies: [initialise]
+    dependencies: [create_PU_dist]
     scheduler:
       scheduler_type: singlestep-stage
       parameters:
-        input_file_PU: {stages: 'initialise', output: PU_files, unwrap: true}
-        input_file_noPU: {stages: 'initialise', output: noPU_files, unwrap: true}
+        input_file_PU: {step: 'init', output: PU_files, unwrap: true}
+        input_file_noPU: {step: 'init', output: noPU_files, unwrap: true}
         algo: 'AK'
         cone_size: '8'
         jet_type: 'PFchs'
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
-      workflow: {$ref: workflow_ntuple.yaml}
+      workflow: {$ref: workflow/workflow_ntuple.yaml}
 
   - name: match_lumi
     dependencies: [produce_ntuple]
@@ -43,7 +35,7 @@ stages:
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
         output_file: '{workdir}/Matchedfiles.yml'
-      step: {$ref: steps.yaml#/match_lumi}
+      step: {$ref: workflow/steps.yaml#/match_lumi}
         
   - name: match_jets
     dependencies: [match_lumi]
@@ -52,7 +44,7 @@ stages:
       parameters:
         input_file: {stages: 'match_lumi', output: MatchedFiles, unwrap: true}
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
-        PU_dist_data: '$REANA_WORKSPACE/MyDataPileupHistogram.root'
+        PU_dist_data: '$REANA_WORKSPACE/input/MyDataPileupHistogram.root'
         sleep: ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19"]
         algo: 'AK'
         cone_size: '8'
@@ -64,7 +56,7 @@ stages:
       scatter:
         method: zip
         parameters: [input_file, sleep]
-      step: {$ref: steps.yaml#/match_jets}
+      step: {$ref: workflow/steps.yaml#/match_jets}
 
   - name: compute_l1
     dependencies: [match_jets]
@@ -80,7 +72,7 @@ stages:
         scram_arch: 'slc7_amd64_gcc700'
         output_path: '{workdir}'
         output_file: '{workdir}/L1FastJet.txt'
-      step: {$ref: steps.yaml#/compute_l1}
+      step: {$ref: workflow/steps.yaml#/compute_l1}
 
   - name: higher_level
     dependencies: [compute_l1]
@@ -92,16 +84,16 @@ stages:
         algo: 'AK'
         cone_size: '8'
         jet_type: 'PFchs'
-        input_file: {stages: 'initialise', output: PU_files, unwrap: true}
+        input_file: {step: 'init', output: PU_files, unwrap: true}
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
-        PU_dist_data: '$REANA_WORKSPACE/MyDataPileupHistogram.root'
+        PU_dist_data: '$REANA_WORKSPACE/input/MyDataPileupHistogram.root'
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
       batchsize: 10
       scatter:
         method: zip
         parameters: [input_file]
-      workflow: {$ref: workflow_higher_level.yaml}
+      workflow: {$ref: workflow/workflow_higher_level.yaml}
 
   - name: compute_l2l3
     dependencies: [higher_level]
@@ -117,7 +109,7 @@ stages:
         scram_arch: 'slc7_amd64_gcc700'
         output_path: '{workdir}'
         output_file: '{workdir}/L2Relative.txt'
-      step: {$ref: 'steps.yaml#/compute_l2l3'}
+      step: {$ref: 'workflow/steps.yaml#/compute_l2l3'}
 
   - name: closure
     dependencies: [compute_l2l3]
@@ -134,13 +126,13 @@ stages:
         release: 'CMSSW_10_6_12'
         scram_arch: 'slc7_amd64_gcc700'
         PU_dist_mc: {stages: 'create_PU_dist', output: PU_dist_mc}
-        PU_dist_data: '$REANA_WORKSPACE/MyDataPileupHistogram.root'
+        PU_dist_data: '$REANA_WORKSPACE/input/MyDataPileupHistogram.root'
         output_path: '{workdir}'
         output_file: '{workdir}/Closure.root'
       scatter:
         method: zip
         parameters: [input_file]
-      step: {$ref: 'steps.yaml#/closure'}
+      step: {$ref: 'workflow/steps.yaml#/closure'}
 
   - name: plots_closure
     dependencies: [closure]
@@ -153,7 +145,7 @@ stages:
         output_path_eos: '/eos/user/a/adlintul/reana/plot_closure/17062020_full_k8s/'
         output_path: '{workdir}/'
         output_file: '{workdir}/Closure_ak8pfchs.root'
-      step: {$ref: 'steps.yaml#/plot_closure'}
+      step: {$ref: 'workflow/steps.yaml#/plot_closure'}
 
   - name: plot_comparison
     dependencies: [compute_l2l3]
@@ -175,4 +167,4 @@ stages:
         fix_pt: '100'
         fix_rho: '20'
         fix_eta: '0'
-      step: {$ref: 'steps.yaml#/plot_comparison'}
+      step: {$ref: 'workflow/steps.yaml#/plot_comparison'}

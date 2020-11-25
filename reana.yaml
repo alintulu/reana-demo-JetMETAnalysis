@@ -2,6 +2,10 @@ version: 0.6.0
 inputs:
   directories:
     - workflow
+    - input
+  options:
+    initfiles:
+      - workflow/files.yaml
 workflow:
   type: yadage
   file: workflow/workflow.yaml

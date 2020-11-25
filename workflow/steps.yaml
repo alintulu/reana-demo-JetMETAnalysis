@@ -21,7 +21,7 @@ initialise:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
 
 create_PU_dist:
   process:
@@ -37,7 +37,7 @@ create_PU_dist:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -52,6 +52,12 @@ list_lumi:
       source /opt/cms/cmsset_default.sh
       cd $HOME/{release}/src
       eval `scramv1 runtime -sh`
+
+      klist
+      ls /eos/user/a/adlintul/
+      ls /eos/home-a/adlintul/
+      ls /eos/cms/
+      ls /eos
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
 
@@ -83,7 +89,9 @@ list_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
+    resources:
+      - kerberos: true
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -108,7 +116,7 @@ match_lumi:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
 
 match_jets:
   process:
@@ -145,7 +153,7 @@ match_jets:
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
 
-      jet_synchtest_x \
+      jet_match_x \
         -basepath '//' \
         -samplePU {output_path}/PUFile.root \
         -sampleNoPU {output_path}/NoPUFile.root \
@@ -171,7 +179,9 @@ match_jets:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
+    resources:
+      - kerberos: true
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -209,7 +219,7 @@ compute_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -242,7 +252,9 @@ apply_l1:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
+    resources:
+      - kerberos: true
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -283,7 +295,7 @@ histogram:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -323,7 +335,7 @@ compute_l2l3:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -369,7 +381,9 @@ closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
+    resources:
+      - kerberos: true
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -402,7 +416,7 @@ plot_closure:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -505,7 +519,7 @@ plot_comparison:
   environment:
     environment_type: docker-encapsulated
     image: alintulu/cmssw
-    imagetag: 10_6_12-upstream-master
+    imagetag: 10_6_12-ilias-patch-updated
   publisher:
     publisher_type: interpolated-pub
     publish:
