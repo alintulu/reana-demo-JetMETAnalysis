@@ -11,8 +11,7 @@ stages:
         cone_size: {stages: init, output: cone_size}
         jet_type: {stages: init, output: jet_type}
         era: {stages: init, output: era}
-        release: {stages: init, output: release, unwrap: true}
-        scram_arch: {stages: init, output: scram_arch, unwrap: true}
+        work_dir: {stages: init, output: work_dir, unwrap: true}
         output_path: '{workdir}'
         output_file: '{workdir}/JRA_jecl1.root'
       step: {$ref: 'steps.yaml#/apply_l1'}
@@ -26,8 +25,7 @@ stages:
         algo: {stages: init, output: algo}
         cone_size: {stages: init, output: cone_size}
         jet_type: {stages: init, output: jet_type}
-        release: {stages: init, output: release, unwrap: true}
-        scram_arch: {stages: init, output: scram_arch, unwrap: true}
+        work_dir: {stages: init, output: work_dir, unwrap: true}
         PU_dist_mc: {stages: init, output: PU_dist_mc, unwrap: true}
         PU_dist_data: {stages: init, output: PU_dist_data, unwrap: true}
         output_path: '{workdir}'

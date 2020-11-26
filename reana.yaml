@@ -2,10 +2,15 @@ version: 0.6.0
 inputs:
   directories:
     - workflow
+    - code
     - input
   options:
     initfiles:
       - workflow/files.yaml
+      - workflow/inputs.yaml
 workflow:
   type: yadage
+  resources:
+    cvmfs:
+      - cms.cern.ch
   file: workflow/workflow.yaml

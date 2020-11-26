@@ -1,86 +1,90 @@
+get_conditions:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: sh
+    script: | 
+      curl_command="curl https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get/{sample_id} -k --silent"
+      eval $curl_command | jq ".results.sequences[].pileup" | sed s/'"'/''/g > {pileup}
+      eval $curl_command | jq ".results.sequences[].conditions" | sed s/'"'/''/g > {conditions}
+      eval $curl_command | jq ".results.cmssw_release" | sed s/'"'/''/g > {cmssw_release}
+      echo -n "Pileup: "
+      cat {pileup}
+      echo -n "Conditions: "
+      cat {conditions}
+      echo -n "CMSSW release: "
+      cat {cmssw_release}
+  environment:
+    environment_type: docker-encapsulated
+    image: peterevans/curl-jq
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      pileup: '{pileup}'
+      conditions: '{conditions}'
+      cmssw_release: '{cmssw_release}'
+
 setup_code:
   process:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      echo "Setting up {release}"
+      echo "Setting up $(cat {release})"
       source /cvmfs/cms.cern.ch/cmsset_default.sh
-      cd {home}
+      cd {work_dir}
       export SCRAM_ARCH={scram_arch}
-      scramv1 project CMSSW {release}
-      cd {home}/{release}/src
+      scramv1 project CMSSW $(cat {release})
+      cd {work_dir}/$(cat {release})/src
       eval `scramv1 runtime -sh`
-      echo "Compiling code"
-      cp -r {home}/code/JetMETAnalysis .
+
+      echo "Compiling JetMETAnalysis code..."
+      cp -r $REANA_WORKSPACE/code/JetMETAnalysis .
       scram b -j 8
+
+      echo "Compiling helper scripts..."
+      cp $REANA_WORKSPACE/code/utils/* .
+      make all
+
+      echo "Compiling comparison plot scripts..."
+      cp $REANA_WORKSPACE/code/comparisonPlots/* .
+      make all
+
+      echo "Done with compilation."
+      echo {work_dir}/$(cat {release})/src > {work_dir}/code_path
   environment:
     environment_type: docker-encapsulated
     image: clelange/cc7-cms
   publisher:
     publisher_type: interpolated-pub
     publish:
-      code_path: '{home}/{release}/src'
-
-ntuple:
-  process:
-    process_type: string-interpolated-cmd
-    cmd: echo does nothing
-  environment:
-    environment_type: localproc-env
-  publisher:
-    publisher_type: interpolated-pub
-    publish:
-      ntuple_file: '{output_file}'
-
-initialise:
-  process:
-    process_type: interpolated-script-cmd
-    interpreter: bash
-    script: |
-      cp {input_file} {output_file}
-  publisher:
-    publisher_type: fromyaml-pub
-    yamlfile: 'files.yml'
-  environment:
-    environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
-
+      code_path: '{work_dir}/code_path'
+      
 create_PU_dist:
   process:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
 
-      cp {PU_dist_loc} {PU_dist_mc} 
+      python makeMCPileupHist.py SimGeneral.MixingModule.mix_{mix_conf_mc}_cfi --outputFilename {PU_dist_mc}
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
   publisher:
     publisher_type: interpolated-pub
     publish:
       PU_dist_mc: '{PU_dist_mc}'
+      PU_dist_data: '{PU_dist_data}'
 
 list_lumi:
   process:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
-
-      klist
-      ls /eos/user/a/adlintul/
-      ls /eos/home-a/adlintul/
-      ls /eos/cms/
-      ls /eos
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
 
@@ -111,8 +115,7 @@ list_lumi:
       done
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
     resources:
       - kerberos: true
   publisher:
@@ -125,9 +128,8 @@ match_lumi:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
 
       cat {lumi_file_noPU} {lumi_file_PU} | ./RunMatchFiles > MatchedFiles
@@ -138,17 +140,15 @@ match_lumi:
     yamlfile: 'Matchedfiles.yml'
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
 
 match_jets:
   process:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: | 
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
 
       echo I will sleep for $(({sleep}*15)) minutes
@@ -201,24 +201,21 @@ match_jets:
       rm {output_path}/PUFile.root
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
     resources:
       - kerberos: true
   publisher:
     publisher_type: interpolated-pub
     publish:
       matched_file: '{output_file}'
-      PU_dist_mc: '{PU_dist_mc}'
 
 compute_l1:
   process:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: | 
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')
@@ -241,8 +238,7 @@ compute_l1:
       rm {output_path}/*.root
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -253,9 +249,8 @@ apply_l1:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
       cp {l1_corr} {era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
 
@@ -274,8 +269,7 @@ apply_l1:
         -saveitree false
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
     resources:
       - kerberos: true
   publisher:
@@ -289,15 +283,13 @@ histogram:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
-      cp $HOME/JetMETAnalysis/JetAnalyzers/config/jra_dr_finebinning.config jra.config
 
       algorithm=$(echo {algo}{cone_size}{jet_type} | tr '[:upper:]' '[:lower:]')l1:0.2
 
-      jet_response_analyzer_x jra.config \
+      jet_response_analyzer_x JetMETAnalysis/JetAnalyzers/config/jra_dr_finebinning.config \
         -input {input_file} \
         -nbinsabsrsp 0 \
         -nbinsetarsp 0 \
@@ -317,8 +309,7 @@ histogram:
         -relrspmax 2.0
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -329,9 +320,8 @@ compute_l2l3:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
 
       hadd -k -f -n 5 {output_path}/Merged.root {input_file}
@@ -357,8 +347,7 @@ compute_l2l3:
       cp {output_path}/{era}*.txt {output_path}/L2Relative.txt
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -369,9 +358,8 @@ closure:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
       cp {l1_corr} {era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
       cp {l2l3_corr} {era}_L2Relative_{algo}{cone_size}{jet_type}.txt
@@ -403,8 +391,7 @@ closure:
       mv {output_path}/Closure_*.root {output_path}/Closure.root
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
     resources:
       - kerberos: true
   publisher:
@@ -418,9 +405,8 @@ plot_closure:
     interpreter: zsh
     script: |
       mkdir -p {output_path}
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
       
       hadd -k -f -n 5 {output_path}/Merged.root {input_file}
@@ -438,8 +424,7 @@ plot_closure:
         -doRatioEta false
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -450,99 +435,89 @@ plot_comparison:
     process_type: interpolated-script-cmd
     interpreter: zsh
     script: |
-      echo "Setting up {release}"
-      source /opt/cms/cmsset_default.sh
-      cd $HOME/{release}/src
+      source /cvmfs/cms.cern.ch/cmsset_default.sh
+      cd $(cat {work_dir})
       eval `scramv1 runtime -sh`
 
       mkdir -p JECDatabase/{era}
       cp {l1_corr} JECDatabase/{era}/{era}_L1FastJet_{algo}{cone_size}{jet_type}.txt
-      cp {l2l3_corr} JECDatabase/{era}/{era}_L2L3Residual_{algo}{cone_size}{jet_type}.txt
+      cp {l2l3_corr} JECDatabase/{era}/{era}_L2Relative_{algo}{cone_size}{jet_type}.txt
 
-      echo "Downloading corrections from Github.."
       rawPath=https://raw.githubusercontent.com/cms-jet/JECDatabase/master/textFiles
-      for version in {versions}; do
+
+      echo "INFO | Downloading corrections from Github.."
+      for version in {era} {versions}; do
           mkdir -p JECDatabase/$version
           for level in {levels}; do
-              wget $rawPath/$version/$version\_$level\_{algo}{cone_size}{jet_type}.txt -P JECDatabase/$version
+              if  wget -q -N $rawPath/$version/$version\_$level\_{algo}.txt -P JECDatabase/$version; then
+          echo "INFO |" Downloading $rawPath/$version/$version\_$level\_{algo}.txt into JECDatabase/$version
+        else
+          if [ -f JECDatabase/$version/$version\_$level\_{algo}.txt ]; then
+              echo "INFO |" $version\_$level\_{algo}.txt already exist in JECDatabase/$version
+          else
+              echo "WARNING |" $version\_$level\_{algo}.txt does not exist in JECDatabase/$version
+              echo "WARNING | Aborting.."
+              return
+          fi 
+        fi
           done
-          wget $rawPath/$version/$version\_"Uncertainty"_{algo}{cone_size}{jet_type}.txt -P JECDatabase/$version
       done
+
+      echo
 
       versions=$(echo "{era} {versions}" | sed -e 's/\s\+/,/g')
-      echo "Computing Eta dependent comparisons.."
-      for pt in {fix_pt}; do
-          echo "    PT" $pt
-          for rho in {fix_rho}; do  
-             echo "      Rho" $rho
-             for level in {levels}; do
-                echo "  Level" $level
-                ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Eta --Min -4.18 --Max 5.18 --NBin -1 --FixPT $pt --FixRho $rho >> EtaDependent.txt 
-             done
-             python PlotCompareVersions.py --Dependent Eta --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
-             rm EtaDependent.txt
-          done
-      done
 
-      echo "Computing PT dependent comparisons.."
-      for eta in {fix_eta}; do
-         echo "    Eta" $eta
-         for rho in {fix_rho}; do
-            echo "      Rho" $rho
-            for level in {levels}; do
-               echo "  Level" $level
-               ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent PT --Min 1 --Max 7000 --NBin 100 --FixEta $eta --FixRho $rho >> PTDependent.txt
+      if [[ {dependent} == *"all"* ]] || [[ {dependent} == *"Eta"* ]]; then
+        echo "INFO | Computing Eta dependent comparisons.."
+        for pt in {fix_pt}; do
+            echo "    PT" $pt
+            for rho in {fix_rho}; do  
+                echo "      Rho" $rho
+                for level in {levels}; do
+                  echo "         Level" $level
+                  ./Execute --Version $versions --Algorithm {algo} --Level $level --Dependent Eta --Min -4.18 --Max 5.18 --NBin -1 --FixPT $pt --FixRho $rho >> EtaDependent.txt 
+                done
+                python PlotCompareVersions.py --Dependent Eta --Levels {levels} --Versions {era} {versions} --OutputPath {output_path} --Algorithm {algo}
+                rm EtaDependent.txt
             done
-            python PlotCompareVersions.py --Dependent PT --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
-            rm PTDependent.txt
-         done
-      done
+        done
 
-      echo "Computing Rho dependent comparisons.."
-      for eta in {fix_eta}; do
-         echo "    Eta" $eta
-         for pt in {fix_pt}; do
-            echo "      PT" $pt
-            for level in {levels}; do
-               echo "  Level" $level
-               ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Rho --Min 0 --Max 70 --NBin 50 --FixPT $pt --FixEta $eta >> RhoDependent.txt
+      fi
+
+      if [[ {dependent} == *"all"* ]] || [[ {dependent} == *"PT"* ]]; then
+        echo "INFO | Computing PT dependent comparisons.."
+        for eta in {fix_eta}; do
+            echo "    Eta" $eta
+            for rho in {fix_rho}; do
+              echo "      Rho" $rho
+              for level in {levels}; do
+                  echo "         Level" $level
+                  ./Execute --Version $versions --Algorithm {algo} --Level $level --Dependent PT --Min 1 --Max 7000 --NBin 100 --FixEta $eta --FixRho $rho >> PTDependent.txt
+              done
+              python PlotCompareVersions.py --Dependent PT --Levels {levels} --Versions {era} {versions} --OutputPath {output_path} --Algorithm {algo}
+              rm PTDependent.txt
             done
-            python PlotCompareVersions.py --Dependent Rho --Levels {levels} --Versions {era} {versions} --OutputPath {output_path} 
-            rm RhoDependent.txt
-         done
-      done
+        done
+      fi
 
-     # echo "Computing PT dependent comparisons.."
-     # for level in {levels}; do
-     #     echo "  Level" $level
-     #     for eta in {fix_eta}; do
-     #         echo "    Eta" $eta
-     #         for rho in {fix_rho}; do 
-     #             echo "      Rho" $rho
-     #             ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent PT --Min 1 --Max 7000 --NBin 100 --FixEta $eta --FixRho $rho >> PTDependent.txt
-     #         done
-     #     done
-     # done
-
-     # python PlotCompareVersions.py --Dependent PT --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
-
-     # echo "Computing Rho dependent comparisons.."
-     # for level in {levels}; do
-     #     echo "  Level" $level
-     #     for eta in {fix_eta}; do
-     #         echo "    Eta" $eta
-     #         for pt in {fix_pt}; do 
-     #             echo "      PT" $pt
-     #             ./Execute --Version $versions --Algorithm {algo}{cone_size}{jet_type} --Level $level --Dependent Rho --Min 0 --Max 70 --NBin 50 --FixPT $pt --FixEta $eta >> RhoDependent.txt
-     #         done
-     #     done
-     # done
-
-     # python PlotCompareVersions.py --Dependent Rho --Levels {levels} --Versions {era} {versions} --OutputPath {output_path}
+      if [[ {dependent} == *"all"* ]] || [[ {dependent} == *"Rho"* ]]; then
+        echo "INFO | Computing Rho dependent comparisons.."
+        for eta in {fix_eta}; do
+            echo "    Eta" $eta
+            for pt in {fix_pt}; do
+              echo "      PT" $pt
+              for level in {levels}; do
+                  echo "         Level" $level
+                  ./Execute --Version $versions --Algorithm {algo} --Level $level --Dependent Rho --Min 0 --Max 70 --NBin 50 --FixPT $pt --FixEta $eta >> RhoDependent.txt
+              done
+              python PlotCompareVersions.py --Dependent Rho --Levels {levels} --Versions {era} {versions} --OutputPath {output_path} --Algorithm {algo}
+              rm RhoDependent.txt
+            done
+        done
+      fi
   environment:
     environment_type: docker-encapsulated
-    image: alintulu/cmssw
-    imagetag: 10_6_12-ilias-patch-updated
+    image: clelange/cc7-cms
   publisher:
     publisher_type: interpolated-pub
     publish:

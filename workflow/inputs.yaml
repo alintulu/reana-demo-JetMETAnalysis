@@ -1,0 +1,8 @@
+sample_id: 'JME-RunIISummer19UL18DIGI-00012'
+scram_arch: 'slc7_amd64_gcc700'
+PU_dist_data: '$REANA_WORKSPACE/input/PileupHistogram-goldenJSON-13tev-2018-69200ub-100bins.root'
+algo: 'AK'
+cone_size: '8'
+jet_type: 'PFchs'
+era: 'REANA'
+batch_size: '10'
